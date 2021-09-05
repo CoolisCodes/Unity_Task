@@ -5,33 +5,85 @@ using UnityEngine.UI;
 using System.Linq;
 using System;
 
+/// <summary>
+/// The Game Manager class is responsible for handling the Data, UI and the decisions that the player made.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
+    /// <summary>
+    /// static instance fo the class, to access it form anywhere
+    /// </summary>
     private static GameManager instance;
 
+    /// <summary>
+    /// list of all the available animals
+    /// </summary>
     public List<Animal> animals = new List<Animal>();
 
+    /// <summary>
+    /// list of all the decisions of the player
+    /// </summary>
     public List<PlayerDecision> playerDecisions = new List<PlayerDecision>();
 
+    /// <summary>
+    /// a private instance of a player decision to be handled by the class
+    /// </summary>
     private PlayerDecision currentPlayerDecision;
 
+    /// <summary>
+    /// a dicitionary containing the names and the pictures of all the available animals
+    /// </summary>
     public Dictionary<string, Texture2D> picturesAndAnimals = new Dictionary<string, Texture2D>();
 
+    /// <summary>
+    /// prefab UI element representing the Picture of an animal;
+    /// </summary>
     public GameObject animalImagePrefab;
+
+    /// <summary>
+    /// prefab UI element representing the Name of an animal;
+    /// </summary>
     public GameObject animalNamePrefab;
+
+    /// <summary>
+    /// prefab UI element representing the line that is drawn by the user.
+    /// </summary>
     public GameObject linePrebab;
 
-    public LineRenderer createdLine;
-    public UiType lastClickedElementType;
+    /// <summary>
+    /// a private instance of a line to be handled by the class
+    /// </summary>
+    private LineRenderer createdLine;
 
+    /// <summary>
+    /// the UI type of the last clicked element.
+    /// </summary>
+    private UiType lastClickedElementType;
+
+    /// <summary>
+    /// The app UI
+    /// </summary>
     public GameUI gameUI;
 
+    /// <summary>
+    /// the color that the created line will turn to if the decision is correct
+    /// </summary>
     public Color correctColor;
+
+    /// <summary>
+    /// the color that the created line will turn to if the decision is incorrect
+    /// </summary>
     public Color incorrectColor;
 
+    /// <summary>
+    /// this degelate gets invoked each time a UI element is clicked
+    /// </summary>
     public Action<string, Vector3, UiType> onUiElementClicked;
 
-    public bool lineInstantiated = false;
+    /// <summary>
+    /// turns true when the line is instantiated and false when the player decision is finalized
+    /// </summary>
+    private bool lineInstantiated = false;
 
     public static GameManager Instance
     {
@@ -57,17 +109,22 @@ public class GameManager : MonoBehaviour
         else
         {
             instance = this;
+            DontDestroyOnLoad(this);
             StartCoroutine(SetImages(animals));
         }
     }
 
+    /// <summary>
+    /// This method is assigned to the onUiElementClicked delegate
+    /// </summary>
+    /// <param name="key"> the name of the animal on the clicked UI element </param>
+    /// <param name="poition"> the position of the clicked UI element </param>
+    /// <param name="uiType"> the type of the clicked Ui element </param>
     public void HandleLine(string key, Vector3 poition, UiType uiType)
     {
         if (!lineInstantiated)
         {
             Debug.Log($"the user first clicked on {key}");
-
-
 
             lastClickedElementType = uiType;
 
@@ -99,11 +156,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// In the Update method once the line is instantiated, the secont position follows the position of the mouse.
+    /// </summary>
     private void Update()
     {
         if (lineInstantiated && createdLine) createdLine.SetPosition(1, gameUI.mouseLocalPos);
     }
 
+    /// <summary>
+    /// Shuffling the picturesAndAnimals dictionary with Linq magic
+    /// </summary>
     public void ShuffleDictionary()
     {
         System.Random rand = new System.Random();
@@ -112,34 +175,12 @@ public class GameManager : MonoBehaviour
           .ToDictionary(item => item.Key, item => item.Value);
     }
 
-    public void GenerateImages()
-    {
-        foreach (string key in picturesAndAnimals.Keys)
-        {
-            Texture2D animalImage = picturesAndAnimals[key];
-
-            GameObject image = Instantiate(animalImagePrefab, gameUI.imagesPanel.transform);
-
-            image.GetComponent<RawImage>().texture = animalImage;
-
-            image.GetComponent<AnimalUiElement>().key = key;
-        }
-    }
-
-    public void GenerateWords()
-    {
-        foreach (string key in picturesAndAnimals.Keys)
-        {
-            string animalName = key;
-
-            GameObject text = Instantiate(animalNamePrefab, gameUI.wordsPanel.transform);
-
-            text.GetComponent<Text>().text = animalName;
-
-            text.GetComponent<AnimalUiElement>().key = key;
-        }
-    }
-
+    /// <summary>
+    /// Getting the links of a given animal list and proceeds to download them.
+    /// Once everything is downloaded the appropriate UI elements are generated.
+    /// </summary>
+    /// <param name="animals"> a list of animals to be downloaded </param>
+    /// <returns></returns>
     IEnumerator SetImages(List<Animal> animals)
     {
         foreach (Animal animal in animals)
@@ -156,4 +197,40 @@ public class GameManager : MonoBehaviour
         ShuffleDictionary();
         GenerateWords();
     }
+
+    /// <summary>
+    /// Generating a picture of an animal on the Images Panel
+    /// </summary>
+    public void GenerateImages()
+    {
+        foreach (string key in picturesAndAnimals.Keys)
+        {
+            Texture2D animalImage = picturesAndAnimals[key];
+
+            GameObject image = Instantiate(animalImagePrefab, gameUI.imagesPanel.transform);
+
+            image.GetComponent<RawImage>().texture = animalImage;
+
+            image.GetComponent<AnimalUiElement>().key = key;
+        }
+    }
+
+    /// <summary>
+    /// Generating a text element with the name of the animal in the Words Panel
+    /// </summary>
+    public void GenerateWords()
+    {
+        foreach (string key in picturesAndAnimals.Keys)
+        {
+            string animalName = key;
+
+            GameObject text = Instantiate(animalNamePrefab, gameUI.wordsPanel.transform);
+
+            text.GetComponent<Text>().text = animalName;
+
+            text.GetComponent<AnimalUiElement>().key = key;
+        }
+    }
+
+
 }
