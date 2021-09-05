@@ -18,12 +18,17 @@ public class AnimalUiElement : MonoBehaviour
     public UiType uiType;
 
     /// <summary>
+    /// this turns true if the UI element is already selected
+    /// </summary>
+    public bool taken = false;
+
+    /// <summary>
     /// Using an Event trigger, when the user clicks the UI element it invokes the onUiElementClicked delegate
-    /// passing the name, the position and the type of the UI element
+    /// passing the name, the position and the AnimalUI object
     /// </summary>
     public void UserClick()
     {
-        GameManager.Instance.onUiElementClicked?.Invoke(key, transform.position, uiType);
+        GameManager.Instance.onUiElementClicked?.Invoke(key, transform.position, this);
     }
 }
 

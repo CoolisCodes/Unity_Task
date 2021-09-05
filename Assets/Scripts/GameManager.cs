@@ -58,7 +58,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// the UI type of the last clicked element.
     /// </summary>
-    private UiType lastClickedElementType;
+    private AnimalUiElement lastClickedElement;
 
     /// <summary>
     /// The app UI
@@ -78,7 +78,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// this degelate gets invoked each time a UI element is clicked
     /// </summary>
-    public Action<string, Vector3, UiType> onUiElementClicked;
+    public Action<string, Vector3, AnimalUiElement> onUiElementClicked;
 
     /// <summary>
     /// turns true when the line is instantiated and false when the player decision is finalized
@@ -120,40 +120,48 @@ public class GameManager : MonoBehaviour
     /// <param name="key"> the name of the animal on the clicked UI element </param>
     /// <param name="poition"> the position of the clicked UI element </param>
     /// <param name="uiType"> the type of the clicked Ui element </param>
-    public void HandleLine(string key, Vector3 poition, UiType uiType)
+    public void HandleLine(string key, Vector3 poition, AnimalUiElement animalUiElement)
     {
-        if (!lineInstantiated)
+        if (!animalUiElement.taken)
         {
-            Debug.Log($"the user first clicked on {key}");
+            if (!lineInstantiated)
+            {
+                Debug.Log($"the user first clicked on {key}");
 
-            lastClickedElementType = uiType;
+                lastClickedElement = animalUiElement;
 
-            GameObject lineRenderer = Instantiate(linePrebab, gameUI.transform);
+                GameObject lineRenderer = Instantiate(linePrebab, gameUI.transform);
 
-            createdLine = lineRenderer.GetComponent<LineRenderer>();
+                createdLine = lineRenderer.GetComponent<LineRenderer>();
 
-            createdLine.SetPosition(0, new Vector3(poition.x, poition.y, -20));
+                createdLine.SetPosition(0, new Vector3(poition.x, poition.y, -20));
 
-            currentPlayerDecision = new PlayerDecision(createdLine, correctColor, incorrectColor);
+                currentPlayerDecision = new PlayerDecision(createdLine, correctColor, incorrectColor);
 
-            currentPlayerDecision.firstKey = key;
+                currentPlayerDecision.firstKey = key;
 
-            lineInstantiated = true;
+                lineInstantiated = true;
+            }
+            else if (lineInstantiated && lastClickedElement.uiType != animalUiElement.uiType)
+            {
+                Debug.Log($"the user last clicked on {key}");
+
+                createdLine.SetPosition(1, new Vector3(poition.x, poition.y, -20));
+
+                currentPlayerDecision.secondKey = key;
+
+                currentPlayerDecision.EvaluateDecision();
+
+                playerDecisions.Add(currentPlayerDecision);
+
+                lineInstantiated = false;
+            }
+
+            animalUiElement.taken = true;
         }
-        else if (lineInstantiated && lastClickedElementType != uiType)
-        {
-            Debug.Log($"the user last clicked on {key}");
 
-            createdLine.SetPosition(1, new Vector3(poition.x, poition.y, -20));
 
-            currentPlayerDecision.secondKey = key;
 
-            currentPlayerDecision.EvaluateDecision();
-
-            playerDecisions.Add(currentPlayerDecision);
-
-            lineInstantiated = false;
-        }
     }
 
     /// <summary>
